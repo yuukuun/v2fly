@@ -152,7 +152,7 @@ cat >/usr/local/nginx/$url/index.html<<-EOF
 <!-- 下载客户端 -->
 <h4><div class="alert alert-success" align="center">下载客户端</div></h4>
 <a type="button" class="btn btn-primary btn-lg" href="v2rayN-Core.zip" target="_blank">Windows客户端</a>
-<a type="button" class="btn btn-primary btn-lg" href="v2rayNG_1.1.14.apk" target="_blank">安卓客户端v2rayNG</a>
+<a type="button" class="btn btn-primary btn-lg" href="v2rayNG.apk" target="_blank">安卓客户端v2rayNG</a>
 <a type="button" class="btn btn-primary btn-lg" href="https://apps.apple.com/us/app/shadowrocket/id932747118" target="_blank">苹果手机客户端 Shadowrocket</a>
 <!--<a type="button" class="btn btn-primary btn-lg" href="v2rayNG_1.1.14.apk" target="_blank">IOS客户端</a>-->
 <!-- 参数设置 -->
