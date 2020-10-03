@@ -1,7 +1,9 @@
 #!bin/bash
 
 sources='https://raw.githubusercontent.com/yuukuun/v2fly/main/'
+#sources='https://moru.gq/v2fly/'
 export sources
+export temp
 
 read -p "Please inter domain : " url
 temp=$(cat /etc/redhat-release)
@@ -34,13 +36,14 @@ cd nginx-1.18.0
 --with-http_sub_module --with-stream --with-stream_ssl_module && make && make install
 
 ### nginx 配置
+# temp=$(cat /etc/redhat-release)
 rm -rf /usr/local/nginx/conf/nginx.conf
 if [[ "$temp" == "CentOS Linux release 8"* ]]; then
-wget -c "$sources"nginx8.conf -O /usr/local/nginx/conf/nginx.conf 
+wget -c "$sources"nginx8.conf -O /usr/local/nginx/conf/nginx.conf
 elif [[ "$temp" == "CentOS Linux release 7"* ]];then
-wget -c "$sources"nginx.conf -O /usr/local/nginx/conf/nginx.conf 
+wget -c "$sources"nginx.conf -O /usr/local/nginx/conf/nginx.conf
 else
-    echo "##### Nginx config error !!! #####"
+    echo "##### Nginx nginx.conf error !!! #####"
 fi
 ###nginx 启动
 cat >/etc/systemd/system/nginx.service<<-EOF
@@ -70,9 +73,9 @@ systemctl enable firewalld.service
 ### ssl
 rm -rf /usr/local/nginx/conf.d/$url.conf
 certbot certonly --webroot -w /usr/local/nginx/html/ -d $url -m 0@yahoo.com --agree-tos
-rm -rf /usr/local/nginx/conf/nginx.conf
 
 
+# temp=$(cat /etc/redhat-release)
 if [[ "$temp" == "CentOS Linux release 8"* ]]; then
 wget -c "$sources"nginxSSL8.conf -O /usr/local/nginx/conf.d/$url.conf 
 elif [[ "$temp" == "CentOS Linux release 7"* ]];then
