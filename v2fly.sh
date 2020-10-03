@@ -36,9 +36,9 @@ cd nginx-1.18.0
 ### nginx 配置
 rm -rf /usr/local/nginx/conf/nginx.conf
 if [[ "$temp" == "CentOS Linux release 8"* ]]; then
-wget -c "$sources"bash/nginx8.conf -O /usr/local/nginx/conf/nginx.conf 
+wget -c "$sources"nginx8.conf -O /usr/local/nginx/conf/nginx.conf 
 elif [[ "$temp" == "CentOS Linux release 7"* ]];then
-wget -c "$sources"bash/nginx.conf -O /usr/local/nginx/conf/nginx.conf 
+wget -c "$sources"nginx.conf -O /usr/local/nginx/conf/nginx.conf 
 else
     echo "##### Nginx config error !!! #####"
 fi
@@ -74,9 +74,9 @@ rm -rf /usr/local/nginx/conf/nginx.conf
 
 
 if [[ "$temp" == "CentOS Linux release 8"* ]]; then
-wget -c "$sources"bash/nginxSSL8.conf -O /usr/local/nginx/conf.d/$url.conf 
+wget -c "$sources"nginxSSL8.conf -O /usr/local/nginx/conf.d/$url.conf 
 elif [[ "$temp" == "CentOS Linux release 7"* ]];then
-wget -c "$sources"bash/nginxSSL.conf -O /usr/local/nginx/conf.d/$url.conf 
+wget -c "$sources"nginxSSL.conf -O /usr/local/nginx/conf.d/$url.conf 
 else
     echo "##### Nginx  SSL config error !!! #####"
 fi
