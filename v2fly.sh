@@ -4,24 +4,24 @@ sources='https://raw.githubusercontent.com/yuukuun/v2fly/main/'
 export sources
 
 read -p "Please inter domain : " url
-###判断 8
 temp=$(cat /etc/redhat-release)
+###判断 8
 if [[ "$temp" == "CentOS Linux release 8"* ]];then
-echo "$temp"
-dnf remove -y epel-release
-dnf install -y epel-release
-dnf install -y certbot python3-certbot-nginx
+	echo "$temp"
+	dnf remove -y epel-release
+	dnf install -y epel-release
+	dnf install -y certbot python3-certbot-nginx
 ###判断 7
 elif [[ "$temp" == "CentOS Linux release 7"* ]];then
-echo "$temp"
-yum remove -y epel-release
-yum install -y epel-release
-yum install -y yum-utils certbot python2-certbot-nginx 
+	echo "$temp"
+	yum remove -y epel-release
+	yum install -y epel-release
+	yum install -y yum-utils certbot python2-certbot-nginx 
 else
-    echo "##### install f2fly error !!! #####"
+    echo "##### install certbot error !!! #####"
 fi
 ### 安装nginx
-mkdir -p /usr/local/nginx/ssl /usr/local/nginx/conf.d
+mkdir -p /usr/local/nginx/conf.d
 sed -i 's/=enforcing/=disabled/g' /etc/selinux/config
 yum install -y gcc gcc-c++ vim libtool zip perl-core zlib-devel wget pcre* unzip automake autoconf make curl
 
@@ -56,30 +56,29 @@ PrivateTmp=true
 [Install]
 WantedBy=multi-user.target
 EOF
-
-systemctl start firewalld.service
-firewall-cmd --add-service=http
-firewall-cmd --add-service=https
-firewall-cmd --add-port=19631/tcp
-firewall-cmd --runtime-to-permanent
-firewall-cmd --reload 
-systemctl enable firewalld.service
-
 /usr/local/nginx/sbin/nginx -t
 /usr/local/nginx/sbin/nginx -s reload
 systemctl restart nginx.service
 systemctl enable nginx.service
+
+systemctl start firewalld.service
+firewall-cmd --add-service=http
+firewall-cmd --add-service=https
+firewall-cmd --runtime-to-permanent
+firewall-cmd --reload 
+systemctl enable firewalld.service
 ### ssl
 rm -rf /usr/local/nginx/conf.d/$url.conf
 certbot certonly --webroot -w /usr/local/nginx/html/ -d $url -m 0@yahoo.com --agree-tos
 rm -rf /usr/local/nginx/conf/nginx.conf
+
 
 if [[ "$temp" == "CentOS Linux release 8"* ]]; then
 wget -c "$sources"bash/nginxSSL8.conf -O /usr/local/nginx/conf.d/$url.conf 
 elif [[ "$temp" == "CentOS Linux release 7"* ]];then
 wget -c "$sources"bash/nginxSSL.conf -O /usr/local/nginx/conf.d/$url.conf 
 else
-    echo "##### Nginx config SSL error !!! #####"
+    echo "##### Nginx  SSL config error !!! #####"
 fi
 
 mkdir /usr/local/nginx/$url
@@ -130,3 +129,57 @@ EOF
 systemctl start v2ray.service
 systemctl enable v2ray.service
 systemctl status v2ray.service
+
+echo '0 4 * * * 2 /usr/bin/certbot renew --dry-run "/usr/local/nginx/sbin/nginx -s reload"' >> /var/spool/cron/root
+###html
+cat >/usr/local/nginx/$url/index.html<<-EOF
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>v2ray 客户端</title>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css">
+  </head>
+  <body>
+<div class="container"><div class="row">
+<!-- 下载客户端 -->
+<h4><div class="alert alert-success" align="center">下载客户端</div></h4>
+<a type="button" class="btn btn-primary btn-lg" href="v2rayN-Core.zip" target="_blank">Windows客户端</a>
+<a type="button" class="btn btn-primary btn-lg" href="v2rayNG_1.1.14.apk" target="_blank">安卓客户端v2rayNG</a>
+<a type="button" class="btn btn-primary btn-lg" href="https://apps.apple.com/us/app/shadowrocket/id932747118" target="_blank">苹果手机客户端 Shadowrocket</a>
+<!--<a type="button" class="btn btn-primary btn-lg" href="v2rayNG_1.1.14.apk" target="_blank">IOS客户端</a>-->
+<!-- 参数设置 -->
+<h4><div class="alert alert-success" align="center">客户端参数</div></h4>
+  <div class="table-responsive">
+    <table class="table table-striped table-bordered table-hover">
+      <tr><th>属性</tH><th>参数</th></tr>
+      <tr><td>协议：</td><td>vmess</td></tr>
+      <tr><td>域名地址：</td><td>$url</td></tr>
+      <tr><td>UUID：</td><td>$uuid</td></tr>
+      <tr><td>端口：</td><td>443</td></tr>
+      <tr><td>额外ID：</td><td>64</td></tr>
+      <tr><td>传输协议：</td><td>ws</td></tr>
+      <tr><td>PATH：</td><td>/7ba7</td></tr>
+      <tr><td>传输安全：</td><td>TLS</td></tr>
+    </table>
+  </div>  
+<!-- 安卓客户端参数 -->
+<h4><div class="alert alert-success " align="center">安卓客户端：域名和UUID修改成自己的</div>
+<img class="img-responsive col-sm-12 col-md-6" src="android_1.jpg"/>
+<img class="img-responsive col-sm-12 col-md-6" src="android_2.jpg"/>
+</h4>
+</div></div>
+<!-- 这里写script -->
+  </body>
+</html>
+EOF
+cd /usr/local/nginx/$url/
+wget "$sources"android_1.jpg
+wget "$sources"android_2.jpg
+wget "$sources"v2rayNG_v1.2.10.apk
+wget https://github.com/2dust/v2rayN/releases/download/3.23/v2rayN-Core.zip
+
