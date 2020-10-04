@@ -1,10 +1,6 @@
 #!bin/bash
 
-systemctl start firewalld.service
-firewall-cmd --add-service=http
-firewall-cmd --add-service=https
-firewall-cmd --runtime-to-permanent
-firewall-cmd --reload 
+
 systemctl stop firewalld.service
 
 sources='https://raw.githubusercontent.com/yuukuun/v2fly/main/'
@@ -64,6 +60,8 @@ wget -c "$sources"nginx.conf -O /usr/local/nginx/conf/nginx.conf
 else
     echo "##### Nginx nginx.conf error !!! #####"
 fi
+
+
 /usr/local/nginx/sbin/nginx -t
 /usr/local/nginx/sbin/nginx -s reload
 systemctl restart nginx.service
@@ -261,4 +259,11 @@ cat >/usr/local/nginx/$url/v2rayN-Core/guiNConfig.json<<-EOP
 }
 EOP
 zip -r /usr/local/nginx/$url/v2rayN-Core.zip v2rayN-Core/ && rm -rf v2rayN-Core
+
+
+systemctl start firewalld.service
+firewall-cmd --add-service=http
+firewall-cmd --add-service=https
+firewall-cmd --runtime-to-permanent
+firewall-cmd --reload 
 systemctl enable firewalld.servic
