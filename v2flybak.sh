@@ -1,79 +1,65 @@
-#!/bin/bash
-### centos 8 centos 7 ubuntu 20
-# --test-cert 是测试参数 67行
-###初始化
-#wget -c https://raw.githubusercontent.com/yuukuun/v2fly/main/v2fly.sh && chmod +x v2fly.sh && bash v2fly.sh
+#!bin/bash
+# centos 8 or centos 7 os ubuntu 20
+# certbot --test-cert测试完事去掉
+
+# wget -c https://raw.githubusercontent.com/yuukuun/v2fly/main/v2fly.sh && chmod +x v2fly.sh && bash v2fly.sh
 sources='https://raw.githubusercontent.com/yuukuun/v2fly/main/'
 #sources='https://moru.gq/v2fly/'
+
+
+
+###########################函数###########################
+###环境变量
 export sources
 export redhat
 export ubuntu
 export url
 export uuid
-
-#######################函数#######################
 centos8() {
-	echo "CentOS 8"
-dnf remove -y epel-release
-dnf install -y epel-release
-dnf install -y certbot python3-certbot-nginx gcc gcc-c++ vim libtool zip perl-core zlib-devel wget pcre* unzip automake autoconf make curl
+  dnf remove -y epel-release
+  dnf install -y epel-release
+  dnf install -y certbot python3-certbot-nginx gcc gcc-c++ vim libtool zip perl-core zlib-devel wget pcre* unzip automake autoconf make curl
 }
-
 centos7() {
- 	echo "CentOS 7"
   yum remove -y epel-release
   yum install -y epel-release
   yum install -y yum-utils certbot python2-certbot-nginx gcc gcc-c++ vim libtool zip perl-core zlib-devel wget pcre* unzip automake autoconf make curl 
 }
-
 ubuntu20() {
-	echo "Ubuntu 20"
-apt-get update
-apt-get install gcc vim libtool zip wget unzip build-essential libpcre3 libpcre3-dev zlib1g-dev automake autoconf make curl -y
-snap install core; snap refresh core
-snap install --classic certbot
-ln -s /snap/bin/certbot /usr/bin/certbot
+  apt-get update
+  apt-get install gcc vim libtool zip wget unzip build-essential libpcre3 libpcre3-dev zlib1g-dev automake autoconf make curl -y
+  snap install core; snap refresh core
+  snap install --classic certbot
+  ln -s /snap/bin/certbot /usr/bin/certbot
 }
-
 insNginx() {
-	echo "insNginx"
-###安装 ningx
-mkdir -p /usr/local/nginx/conf.d
-cd /tmp
-wget -c https://www.openssl.org/source/openssl-1.1.1a.tar.gz && tar xzvf openssl-1.1.1a.tar.gz 
-wget -c http://nginx.org/download/nginx-1.18.0.tar.gz && tar xf nginx-1.18.0.tar.gz && rm nginx-1.18.0.tar.gz
-cd nginx-1.18.0
-./configure --prefix=/usr/local/nginx --with-openssl=../openssl-1.1.1a --with-openssl-opt='enable-tls1_3' \
---with-http_v2_module --with-http_ssl_module --with-http_gzip_static_module --with-http_stub_status_module \
---with-http_sub_module --with-stream --with-stream_ssl_module && make && make install
-###nginx 启动
-cat >/etc/systemd/system/nginx.service<<-EOF
-[Unit]
-Description=nginx
-After=network.target
-[Service]
-Type=forking
-ExecStart=/usr/local/nginx/sbin/nginx
-ExecReload=/usr/local/nginx/sbin/nginx -s reload
-ExecStop=/usr/local/nginx/sbin/nginx -s quit
-PrivateTmp=true
-[Install]
-WantedBy=multi-user.target
-EOF
-rm -rf /usr/local/nginx/conf/nginx.conf
+  ###安装 ningx
+  mkdir -p /usr/local/nginx/conf.d
+  cd /tmp
+  wget -c https://www.openssl.org/source/openssl-1.1.1a.tar.gz && tar xzvf openssl-1.1.1a.tar.gz 
+  wget -c http://nginx.org/download/nginx-1.18.0.tar.gz && tar xf nginx-1.18.0.tar.gz && rm nginx-1.18.0.tar.gz
+  cd nginx-1.18.0
+  ./configure --prefix=/usr/local/nginx --with-openssl=../openssl-1.1.1a --with-openssl-opt='enable-tls1_3' \
+  --with-http_v2_module --with-http_ssl_module --with-http_gzip_static_module --with-http_stub_status_module \
+  --with-http_sub_module --with-stream --with-stream_ssl_module && make && make install
+  ###nginx 启动
+  cat >/etc/systemd/system/nginx.service<<-EOF
+  [Unit]
+  Description=nginx
+  After=network.target
+  [Service]
+  Type=forking
+  ExecStart=/usr/local/nginx/sbin/nginx
+  ExecReload=/usr/local/nginx/sbin/nginx -s reload
+  ExecStop=/usr/local/nginx/sbin/nginx -s quit
+  PrivateTmp=true
+  [Install]
+  WantedBy=multi-user.target
+  EOF
+  rm -rf /usr/local/nginx/conf/nginx.conf
 }
-
-addSSL() {
-	echo "addSSL"
-#certbot certonly --webroot -w /usr/local/nginx/html/ -d $url -m 0@yahoo.com --agree-tos --test-cert -n
-certbot certonly --webroot -w /usr/local/nginx/html/ -d $url -m 0@yahoo.com --agree-tos -n
-echo '0 4 * * * 2 /usr/bin/certbot renew --dry-run "/usr/local/nginx/sbin/nginx -s reload"' >> /var/spool/cron/root
-}
-
-server() {
-	echo "v2fly Server"
-#bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)
-wget -c https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh && chmod +x install-release.sh && bash install-release.sh 
+v2flySercer() {
+bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)
 uuid=$(cat /proc/sys/kernel/random/uuid)
 cat >/usr/local/etc/v2ray/config.json<<-EOF
 {
@@ -109,10 +95,11 @@ cat >/usr/local/etc/v2ray/config.json<<-EOF
   }
 }
 EOF
+systemctl start v2ray.service
+systemctl enable v2ray.service 
 }
 
-client() {
-	echo "v2fly Client"
+v2flyClient() {
 cat >/usr/local/nginx/$url/index.html<<-EOF
 <!DOCTYPE html>
 <html>
@@ -129,8 +116,8 @@ cat >/usr/local/nginx/$url/index.html<<-EOF
 <div class="container"><div class="row">
 <!-- 下载客户端 -->
 <h4><div class="alert alert-success" align="center">下载客户端</div></h4>
-<a type="button" class="btn btn-primary btn-lg" href="v2rayN-Core.zip" target="_blank">Windows客户端 v2rayN</a>
-<a type="button" class="btn btn-primary btn-lg" href="v2rayNG.apk" target="_blank">安卓客户端 v2rayNG</a>
+<a type="button" class="btn btn-primary btn-lg" href="v2rayN-Core.zip" target="_blank">Windows客户端</a>
+<a type="button" class="btn btn-primary btn-lg" href="v2rayNG.apk" target="_blank">安卓客户端v2rayNG</a>
 <a type="button" class="btn btn-primary btn-lg" href="https://apps.apple.com/us/app/shadowrocket/id932747118" target="_blank">苹果手机客户端 Shadowrocket</a>
 <!--<a type="button" class="btn btn-primary btn-lg" href="v2rayNG_1.1.14.apk" target="_blank">IOS客户端</a>-->
 <!-- 参数设置 -->
@@ -241,11 +228,14 @@ cat >/usr/local/nginx/$url/v2rayN-Core/guiNConfig.json<<-EOP
 EOP
 zip -r /usr/local/nginx/$url/v2rayN-Core.zip v2rayN-Core/ && rm -rf v2rayN-Core
 }
+######################################################
 
-#######################程序开始#######################
+
+###程序入口##############################
 read -p "Please inter domain : " url
-###判断安装
-if [[ -f /etc/redhat-release ]]; then
+###判断centos
+if [[ -f /etc/redhat-release ]];then
+  redhat=$(cat /etc/redhat-release)
 systemctl start firewalld.service
 firewall-cmd --add-service=http
 firewall-cmd --add-service=https
@@ -253,53 +243,43 @@ firewall-cmd --runtime-to-permanent
 firewall-cmd --reload 
 systemctl enable firewalld.servic
 systemctl stop firewalld.servic
-	echo "v2fly redhat"
-	redhat=$(cat /etc/redhat-release)
-	if [[ "$redhat" == "CentOS Linux release 8"* ]]; then
-		centos8 #
-		insNginx
-		wget -c "$sources"nginx8.conf -O /usr/local/nginx/conf/nginx.conf
-		systemctl restart nginx.service
-		wget -c "$sources"nginxSSL8.conf -O /usr/local/nginx/conf.d/$url.conf
-	elif [[ "$redhat" == "CentOS Linux release 7"* ]]; then
-		centos7 #
-		insNginx
-		wget -c "$sources"nginx.conf -O /usr/local/nginx/conf/nginx.conf
-		systemctl restart nginx.service
-		wget -c "$sources"nginxSSL.conf -O /usr/local/nginx/conf.d/$url.conf
-	fi
-elif [[ -f /etc/lsb-release ]]; then
-	echo "v2fly lsb"
-	ubuntu=$(cat /etc/lsb-release)
-	if [[ "$ubuntu" == *"Ubuntu 20"* ]]; then
-		ubuntu20
-		insNginx
-		wget -c "$sources"nginx.conf -O /usr/local/nginx/conf/nginx.conf
-		systemctl restart nginx.service
-		wget -c "$sources"nginxSSL.conf -O /usr/local/nginx/conf.d/$url.conf
-	fi
+sed -i 's/=enforcing/=disabled/g' /etc/selinux/config
+    ###判断centos7 或 centos 8
+    if [[ "$redhat" == "CentOS Linux release 8"* ]];then
+        centos8 #
+        insNginx
+        wget -c "$sources"nginx8.conf -O /usr/local/nginx/conf/nginx.conf
+        systemctl restart nginx.service 
+
+        wget -c "$sources"nginxSSL8.conf -O /usr/local/nginx/conf.d/$url.conf
+    elif [[ "$redhat" == "CentOS Linux release 7"* ]];then
+        centos7 #
+        insNginx
+        wget -c "$sources"nginx.conf -O /usr/local/nginx/conf/nginx.conf
+        systemctl restart nginx.service 
+/usr/bin/certbot certonly --webroot -w /usr/local/nginx/html/ -d $url --agree-tos --test-cert ###--test-cert测试
+        wget -c "$sources"nginxSSL.conf -O /usr/local/nginx/conf.d/$url.conf
+    fi
+###判断ubuntu
+elif [[ -f /etc/lsb-release ]];then
+  ubuntu=$(cat /etc/lsb-release)
+ubuntu20  #
+insNginx
+wget -c "$sources"nginx.conf -O /usr/local/nginx/conf/nginx.conf
+systemctl restart nginx.service 
+/usr/bin/certbot certonly --webroot -w /usr/local/nginx/html/ -d $url --agree-tos --test-cert ###--test-cert测试
+wget -c "$sources"nginxSSL.conf -O /usr/local/nginx/conf.d/$url.conf
 fi
-###SSL
+
 mkdir /usr/local/nginx/$url
 cp -r /usr/local/nginx/html/* /usr/local/nginx/$url/
 sed -i "s%\$urls%$url%g" /usr/local/nginx/conf.d/$url.conf
-addSSL
-server
-client
+
 
 systemctl restart nginx.service
 systemctl enable nginx.service
-
-systemctl restart v2ray.service
-systemctl enable v2ray.service
-
+v2flySercer
+v2flyClient
 systemctl status nginx.service
 systemctl status v2ray.service
-
-# centos8
-# centos7
-# ubuntu20
-# insNginx
-# addSSL
-# v2flySercer
-# v2flyClient
+/usr/bin/echo '0 4 * * * 2 /usr/bin/certbot renew --dry-run "/usr/local/nginx/sbin/nginx -s reload"' >> /var/spool/cron/root
