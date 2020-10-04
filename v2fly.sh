@@ -1,6 +1,6 @@
 #!bin/bash
 
-wget -c https://raw.githubusercontent.com/yuukuun/v2fly/main/v2fly.sh && chmod +x v2fly.sh && ./v2fly.sh
+# wget -c https://raw.githubusercontent.com/yuukuun/v2fly/main/v2fly.sh && chmod +x v2fly.sh && bash v2fly.sh
 
 systemctl stop firewalld.service
 
