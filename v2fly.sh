@@ -31,8 +31,8 @@ sed -i 's/=enforcing/=disabled/g' /etc/selinux/config
 yum install -y gcc gcc-c++ vim libtool zip perl-core zlib-devel wget pcre* unzip automake autoconf make curl
 
 cd /tmp
-wget https://www.openssl.org/source/openssl-1.1.1a.tar.gz && tar xzvf openssl-1.1.1a.tar.gz 
-wget http://nginx.org/download/nginx-1.18.0.tar.gz && tar xf nginx-1.18.0.tar.gz && rm nginx-1.18.0.tar.gz
+wget -c https://www.openssl.org/source/openssl-1.1.1a.tar.gz && tar xzvf openssl-1.1.1a.tar.gz 
+wget -c http://nginx.org/download/nginx-1.18.0.tar.gz && tar xf nginx-1.18.0.tar.gz && rm nginx-1.18.0.tar.gz
 cd nginx-1.18.0
 ./configure --prefix=/usr/local/nginx --with-openssl=../openssl-1.1.1a --with-openssl-opt='enable-tls1_3' \
 --with-http_v2_module --with-http_ssl_module --with-http_gzip_static_module --with-http_stub_status_module \
@@ -178,10 +178,10 @@ cat >/usr/local/nginx/$url/index.html<<-EOF
 </html>
 EOF
 cd /usr/local/nginx/$url/
-wget "$sources"android_1.jpg
-wget "$sources"android_2.jpg
-wget "$sources"v2rayNG.apk
-wget https://github.com/2dust/v2rayN/releases/download/3.23/v2rayN-Core.zip && unzip v2rayN-Core.zip && rm -rf /usr/local/nginx/$url/*.zip
+wget -c "$sources"android_1.jpg
+wget -c "$sources"android_2.jpg
+wget -c "$sources"v2rayNG.apk
+wget -c https://github.com/2dust/v2rayN/releases/download/3.23/v2rayN-Core.zip && unzip v2rayN-Core.zip && rm -rf /usr/local/nginx/$url/*.zip
 cat >/usr/local/nginx/$url/v2rayN-Core/guiNConfig.json<<-EOP
 {
   "inbound": [
