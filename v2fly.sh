@@ -1,24 +1,31 @@
 #!bin/bash
 
+systemctl start firewalld.service
+firewall-cmd --add-service=http
+firewall-cmd --add-service=https
+firewall-cmd --runtime-to-permanent
+firewall-cmd --reload 
+systemctl stop firewalld.service
+
 sources='https://raw.githubusercontent.com/yuukuun/v2fly/main/'
 #sources='https://moru.gq/v2fly/'
 export sources
 export temp
+temp=$(cat /etc/redhat-release)
 
 read -p "Please inter domain : " url
-temp=$(cat /etc/redhat-release)
 ###判断 8
 if [[ "$temp" == "CentOS Linux release 8"* ]];then
-	echo "$temp"
-	dnf remove -y epel-release
-	dnf install -y epel-release
-	dnf install -y certbot python3-certbot-nginx
+  echo "$temp"
+  dnf remove -y epel-release
+  dnf install -y epel-release
+  dnf install -y certbot python3-certbot-nginx
 ###判断 7
 elif [[ "$temp" == "CentOS Linux release 7"* ]];then
-	echo "$temp"
-	yum remove -y epel-release
-	yum install -y epel-release
-	yum install -y yum-utils certbot python2-certbot-nginx 
+  echo "$temp"
+  yum remove -y epel-release
+  yum install -y epel-release
+  yum install -y yum-utils certbot python2-certbot-nginx 
 else
     echo "##### install certbot error !!! #####"
 fi
@@ -34,17 +41,6 @@ cd nginx-1.18.0
 ./configure --prefix=/usr/local/nginx --with-openssl=../openssl-1.1.1a --with-openssl-opt='enable-tls1_3' \
 --with-http_v2_module --with-http_ssl_module --with-http_gzip_static_module --with-http_stub_status_module \
 --with-http_sub_module --with-stream --with-stream_ssl_module && make && make install
-
-### nginx 配置
-# temp=$(cat /etc/redhat-release)
-rm -rf /usr/local/nginx/conf/nginx.conf
-if [[ "$temp" == "CentOS Linux release 8"* ]]; then
-wget -c "$sources"nginx8.conf -O /usr/local/nginx/conf/nginx.conf
-elif [[ "$temp" == "CentOS Linux release 7"* ]];then
-wget -c "$sources"nginx.conf -O /usr/local/nginx/conf/nginx.conf
-else
-    echo "##### Nginx nginx.conf error !!! #####"
-fi
 ###nginx 启动
 cat >/etc/systemd/system/nginx.service<<-EOF
 [Unit]
@@ -59,21 +55,24 @@ PrivateTmp=true
 [Install]
 WantedBy=multi-user.target
 EOF
+### nginx 配置
+rm -rf /usr/local/nginx/conf/nginx.conf
+if [[ "$temp" == "CentOS Linux release 8"* ]]; then
+wget -c "$sources"nginx8.conf -O /usr/local/nginx/conf/nginx.conf
+elif [[ "$temp" == "CentOS Linux release 7"* ]];then
+wget -c "$sources"nginx.conf -O /usr/local/nginx/conf/nginx.conf
+else
+    echo "##### Nginx nginx.conf error !!! #####"
+fi
 /usr/local/nginx/sbin/nginx -t
 /usr/local/nginx/sbin/nginx -s reload
 systemctl restart nginx.service
 systemctl enable nginx.service
 
-systemctl start firewalld.service
-firewall-cmd --add-service=http
-firewall-cmd --add-service=https
-firewall-cmd --runtime-to-permanent
-firewall-cmd --reload 
-systemctl enable firewalld.service
+
 ### ssl
 rm -rf /usr/local/nginx/conf.d/$url.conf
 certbot certonly --webroot -w /usr/local/nginx/html/ -d $url -m 0@yahoo.com --agree-tos
-
 
 # temp=$(cat /etc/redhat-release)
 if [[ "$temp" == "CentOS Linux release 8"* ]]; then
@@ -183,6 +182,83 @@ EOF
 cd /usr/local/nginx/$url/
 wget "$sources"android_1.jpg
 wget "$sources"android_2.jpg
-wget "$sources"v2rayNG_v1.2.10.apk
-wget https://github.com/2dust/v2rayN/releases/download/3.23/v2rayN-Core.zip
-
+wget "$sources"v2rayNG.apk
+wget https://github.com/2dust/v2rayN/releases/download/3.23/v2rayN-Core.zip && unzip v2rayN-Core.zip && rm -rf /usr/local/nginx/$url/*.zip
+cat >/usr/local/nginx/$url/v2rayN-Core/guiNConfig.json<<-EOP
+{
+  "inbound": [
+    {
+      "localPort": 10808,
+      "protocol": "socks",
+      "udpEnabled": true,
+      "sniffingEnabled": true
+    }
+  ],
+  "logEnabled": false,
+  "loglevel": "warning",
+  "index": 0,
+  "vmess": [
+    {
+      "configVersion": 2,
+      "address": "$url",
+      "port": 443,
+      "id": "$uuid",
+      "alterId": 64,
+      "security": "auto",
+      "network": "ws",
+      "remarks": "",
+      "headerType": "none",
+      "requestHost": "",
+      "path": "/7ba7",
+      "streamSecurity": "tls",
+      "allowInsecure": "",
+      "configType": 1,
+      "testResult": "",
+      "subid": ""
+    }
+  ],
+  "muxEnabled": true,
+  "domainStrategy": "IPIfNonMatch",
+  "routingMode": "0",
+  "useragent": [],
+  "userdirect": [],
+  "userblock": [],
+  "kcpItem": {
+    "mtu": 1350,
+    "tti": 50,
+    "uplinkCapacity": 12,
+    "downlinkCapacity": 100,
+    "congestion": false,
+    "readBufferSize": 2,
+    "writeBufferSize": 2
+  },
+  "listenerType": 2,
+  "speedTestUrl": "http://speedtest-sgp1.digitalocean.com/10mb.test",
+  "speedPingTestUrl": "https://www.google.com/generate_204",
+  "urlGFWList": "https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt",
+  "allowLANConn": false,
+  "enableStatistics": false,
+  "keepOlderDedupl": false,
+  "statisticsFreshRate": 2000,
+  "remoteDNS": null,
+  "defAllowInsecure": false,
+  "subItem": [],
+  "uiItem": {
+    "mainSize": "968, 632",
+    "mainLvColWidth": {
+      "def": 30,
+      "configType": 80,
+      "remarks": 100,
+      "address": 120,
+      "port": 50,
+      "security": 90,
+      "network": 70,
+      "subRemarks": 50,
+      "testResult": 70
+    }
+  },
+  "userPacRule": []
+}
+EOP
+zip -r /usr/local/nginx/$url/v2rayN-Core.zip v2rayN-Core/ && rm -rf v2rayN-Core
+systemctl enable firewalld.servic
