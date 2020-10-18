@@ -243,7 +243,7 @@ zip -r /usr/local/nginx/$url/v2rayN-Core.zip v2rayN-Core/ && rm -rf v2rayN-Core
 }
 
 #######################程序开始#######################
-read -p "Please inter domain : " url
+read -p "请输入自己的域名: " url
 ###判断安装
 if [[ -f /etc/redhat-release ]]; then
 systemctl start firewalld.service
