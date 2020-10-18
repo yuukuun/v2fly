@@ -283,9 +283,16 @@ fi
 mkdir /usr/local/nginx/$url
 cp -r /usr/local/nginx/html/* /usr/local/nginx/$url/
 sed -i "s%\$urls%$url%g" /usr/local/nginx/conf.d/$url.conf
+
 addSSL
 server
 client
+
+###备份与时间同步
+mkdir ~/$url && cp -r /usr/local/nginx/$url ~/$url
+rm -rf /etc/localtime
+ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
 
 systemctl restart nginx.service
 systemctl enable nginx.service
