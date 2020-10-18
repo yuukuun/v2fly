@@ -2,9 +2,9 @@
 ### centos 8 centos 7 ubuntu 20
 # --test-cert 是测试参数 67行
 ###初始化
-#wget -c https://raw.githubusercontent.com/yuukuun/v2fly/main/v2fly.sh && chmod +x v2fly.sh && bash v2fly.sh
+# bash <(curl -L https://raw.githubusercontent.com/yuukuun/v2fly/main/v2fly.sh)
+
 sources='https://raw.githubusercontent.com/yuukuun/v2fly/main/'
-#sources='https://moru.gq/v2fly/'
 export sources
 export redhat
 export ubuntu
